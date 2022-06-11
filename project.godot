@@ -10,12 +10,13 @@ config_version=4
 
 [application]
 
-config/name="nebula_game_auth"
+config/name="nebula_game_server"
+run/main_scene="res://scenes/main/server.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-playerdata="*res://scenes/singletons/playerdata.gd"
+serverdata="*res://scenes/singletons/serverdata.gd"
 
 [physics]
 
