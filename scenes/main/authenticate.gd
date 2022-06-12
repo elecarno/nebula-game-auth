@@ -1,7 +1,7 @@
 extends Node2D
 
 var network = NetworkedMultiplayerENet.new()
-var port = 5030
+var port = 1911
 var max_servers = 5
 
 func _ready():
@@ -20,3 +20,30 @@ func _peer_connected(gateway_id):
 	
 func _peer_disconnected(gateway_id):
 	print("gateway " + str(gateway_id) + " disconnected")
+	
+remote func authenticate_player(username, password, player_id):
+	var debug_player_str = username + " (" + str(player_id) + ")"
+	print("authentication request recieved for " + debug_player_str)
+	
+	var token
+	var gateway_id = get_tree().get_rpc_sender_id()
+	var result
+	print("starting authentication for " + debug_player_str)
+	
+	if not playerdata.player_ids.has(username):
+		print("user not recognised")
+		result = false
+	elif not playerdata.player_ids[username].password == password:
+		print("incorrect password")
+		result = false
+	else:
+		print("succesful authentication for " + debug_player_str)
+		result = true
+		
+	randomize()
+	token = str(randi()).sha256_text() + str(OS.get_unix_time())
+	var gameserver = "gameserver1"
+	gameservers.distribute_login_token(token, gameserver)
+	
+	rpc_id(gateway_id, "authentication_results", result, player_id, token)
+	print("authentication result for " + debug_player_str + " sent to gateway server")

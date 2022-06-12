@@ -1,16 +1,10 @@
 extends Node
 
+var player_ids
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-
-
-# Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+	var player_ids_file = File.new()
+	player_ids_file.open("res://data/playerdata.json", File.READ)
+	var player_ids_json = JSON.parse(player_ids_file.get_as_text())
+	player_ids_file.close()
+	player_ids = player_ids_json.result
