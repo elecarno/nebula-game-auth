@@ -25,6 +25,7 @@ remote func authenticate_player(username, password, player_id):
 	var debug_player_str = username + " (" + str(player_id) + ")"
 	print("authentication request recieved for " + debug_player_str)
 	
+	var hashed_password
 	var token
 	var gateway_id = get_tree().get_rpc_sender_id()
 	var result
@@ -33,17 +34,22 @@ remote func authenticate_player(username, password, player_id):
 	if not playerdata.player_ids.has(username):
 		print("user not recognised")
 		result = false
-	elif not playerdata.player_ids[username].password == password:
-		print("incorrect password")
-		result = false
 	else:
-		print("succesful authentication for " + debug_player_str)
-		result = true
+		var retrieved_salt = playerdata.player_ids[username].salt
+		hashed_password = generate_hashed_password(password, retrieved_salt)
+		print("retrieved salt and hashed given password")
 		
-	randomize()
-	token = str(randi()).sha256_text() + str(OS.get_unix_time())
-	var gameserver = "gameserver1"
-	gameservers.distribute_login_token(token, gameserver)
+		if not playerdata.player_ids[username].password == hashed_password:
+			print("incorrect password")
+			result = false
+		else:
+			print("succesful authentication for " + debug_player_str)
+			result = true
+			
+		randomize()
+		token = str(randi()).sha256_text() + str(OS.get_unix_time())
+		var gameserver = "gameserver1"
+		gameservers.distribute_login_token(token, gameserver)
 	
 	rpc_id(gateway_id, "authentication_results", result, player_id, token)
 	print("authentication result for " + debug_player_str + " sent to gateway server")
@@ -58,7 +64,22 @@ remote func create_account(username, password, player_id):
 	else:
 		result = true
 		message = 3
-		playerdata.player_ids[username] = {"password": password }
+		var salt = generate_salt()
+		var hashed_password = generate_hashed_password(password, salt)
+		playerdata.player_ids[username] = {"password": hashed_password, "salt": salt }
 		playerdata.save_player_ids()
 		
 	rpc_id(gateway_id, "create_account_results", result, player_id, message)
+	
+func generate_salt():
+	randomize()
+	var salt = str(randi()).sha256_text()
+	return salt
+	
+func generate_hashed_password(password, salt):
+	var hashed_password = password
+	var rounds = pow(2, 18) #8 pow(2, 18) 262144
+	while rounds > 0:
+		hashed_password = (hashed_password + salt).sha256_text()
+		rounds -= 1
+	return hashed_password
