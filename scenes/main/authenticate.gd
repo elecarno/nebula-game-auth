@@ -47,3 +47,18 @@ remote func authenticate_player(username, password, player_id):
 	
 	rpc_id(gateway_id, "authentication_results", result, player_id, token)
 	print("authentication result for " + debug_player_str + " sent to gateway server")
+	
+remote func create_account(username, password, player_id):
+	var gateway_id = get_tree().get_rpc_sender_id()
+	var result
+	var message
+	if playerdata.player_ids.has(username):
+		result = false
+		message = 2
+	else:
+		result = true
+		message = 3
+		playerdata.player_ids[username] = {"password": password }
+		playerdata.save_player_ids()
+		
+	rpc_id(gateway_id, "create_account_results", result, player_id, message)
