@@ -51,7 +51,7 @@ remote func authenticate_player(username, password, player_id):
 		var gameserver = "gameserver1"
 		gameservers.distribute_login_token(token, gameserver)
 	
-	rpc_id(gateway_id, "authentication_results", result, player_id, token)
+	rpc_id(gateway_id, "authentication_results", result, player_id, token, username)
 	print("authentication result for " + debug_player_str + " sent to gateway server")
 	
 remote func create_account(username, password, player_id):
